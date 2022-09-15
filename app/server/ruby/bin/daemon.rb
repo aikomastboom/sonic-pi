@@ -160,7 +160,7 @@ module SonicPi
         @compton_booter  = nil
 
         # use a value within the valid range for a 32 bit signed complement integer
-        @daemon_token =  rand(-2147483647..2147483647)
+        @daemon_token =  39482444 # rand(-2147483647..2147483647)
 
         if @no_scsynth_inputs
           Util.log "SuperCollider inputs disabled by GUI"
@@ -1335,7 +1335,7 @@ module SonicPi
         "daemon" => :dynamic,
 
         # Port which the server uses to listen to messages from the GUI:
-        "spider-listen-to-gui" => :dynamic,
+        "spider-listen-to-gui" => 4567, # :dynamic,
 
         # Port which the GUI uses to send messages to the server:
         # May be paired with server_listen_to_gui
