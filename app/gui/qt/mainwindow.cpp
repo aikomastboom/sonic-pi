@@ -775,11 +775,11 @@ void MainWindow::setupWindowStructure()
     southTabs->setTabPosition(QTabWidget::West);
     southTabs->setTabsClosable(false);
     southTabs->setMovable(false);
-    southTabs->addTab(docsplit, "Docs");
+    southTabs->addTab(docsplit, tr("Docs"));
     southTabs->setAttribute(Qt::WA_StyledBackground, true);
 
 #ifdef WITH_WEBENGINE
-    southTabs->addTab(phxWidget, "Tau");
+    southTabs->addTab(phxWidget, tr("Tau"));
 #endif
 
     docWidget = new QDockWidget(tr("Help"), this);
