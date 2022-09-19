@@ -125,10 +125,10 @@ Next we run the build-all script for Linux:
 
 Finally, you can run your newly compiled `Sonic Pi` app within the `build`
 directly either by double clicking it in your file manager or via the terminal
-(from within the `build/gui/qt/sonic-pi` directory):
+(from within the `../app/build/gui/qt/` directory):
 
 ```
-./sonic-pi
+./build/gui/qt/sonic-pi
 ```
 
 
