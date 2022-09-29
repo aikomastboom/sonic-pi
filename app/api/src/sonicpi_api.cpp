@@ -79,30 +79,34 @@ SonicPiAPI::SonicPiAPI(IAPIClient* pClient, APIProtocol protocol, LogOption logO
 
 fs::path SonicPiAPI::FindHomePath() const
 {
-    fs::path homePath;
     auto pszHome = std::getenv("SONIC_PI_HOME");
     if (pszHome != nullptr)
     {
-        homePath = fs::path(pszHome);
+        return pszHome;
     }
 
-    // Check for home path existence and if not, use user documents path
-    if (!fs::exists(homePath))
+#if defined(WIN32)
+    auto usrprofHome = std::getenv("USERPROFILE");
+    if (usrprofHome != nullptr)
     {
-        homePath = fs::path(sago::getDocumentsFolder()).parent_path();
+        return fs::path(usrprofHome);
     }
 
-    // Final attempt at getting the folder; try to create it if possible
-    if (!fs::exists(homePath))
+    auto homeDrive = std::getenv("HOMEDRIVE");
+    auto homePath = std::getenv("HOMEPATH");
+    if ((homeDrive  != nullptr) && (homePath != nullptr))
     {
-        std::error_code err;
-        if (!fs::create_directories(homePath, err))
-        {
-            // Didn't exist, and failed to create it
-            return fs::path();
-        }
+        return fs::path(homeDrive) / homePath;
     }
-    return homePath;
+#endif
+
+    auto home = std::getenv("HOME");
+    if (home != nullptr)
+    {
+        return fs::path(home);
+    }
+
+    return fs::path(sago::getDocumentsFolder()).parent_path();
 }
 
 std::error_code SonicPiAPI::RunProcess(const std::vector<std::string>& args, std::string* pOutput)
@@ -587,11 +591,10 @@ bool SonicPiAPI::PingUntilServerCreated()
 }
 
 // Initialize the API with the sonic pi root path (the folder containing the app folder)
-APIInitResult SonicPiAPI::Init(const fs::path& root, bool noScsynthInputs)
+APIInitResult SonicPiAPI::Init(const fs::path& root)
 {
-
-  m_token = -1;
-  m_osc_mtx.lock();
+    m_token = -1;
+    m_osc_mtx.lock();
 
     if (m_state == State::Created)
     {
@@ -647,14 +650,20 @@ APIInitResult SonicPiAPI::Init(const fs::path& root, bool noScsynthInputs)
     }
 
     if (m_homeDirWriteable) {
-      LOG(INFO, "Home dir writable: ");
+
     } else {
+      LOG(INFO, "Home dir not writable ");
       return APIInitResult::HomePathNotWritableError;
     }
 
-
     EnsurePathsAreCanonical();
-    StartClearLogsScript();
+    m_osc_mtx.unlock();
+    return APIInitResult::Successful;
+}
+
+APIBootResult SonicPiAPI::Boot(bool noScsynthInputs)
+{
+    m_osc_mtx.lock();
 
     // Setup redirection of log from this app to our log file
     // stdout into ~/.sonic-pi/log/gui.log
@@ -664,6 +673,8 @@ APIInitResult SonicPiAPI::Init(const fs::path& root, bool noScsynthInputs)
         m_stdlog.open(m_paths[SonicPiPath::GUILogPath].string().c_str());
         std::cout.rdbuf(m_stdlog.rdbuf());
     }
+
+    StartClearLogsScript();
 
     LOG(INFO, "Starting...");
 
@@ -689,9 +700,9 @@ APIInitResult SonicPiAPI::Init(const fs::path& root, bool noScsynthInputs)
         LOG(INFO, "Attempting to start Boot Daemon failed....";)
         m_osc_mtx.unlock();
         if (boot_daemon_res == BootDaemonInitResult::ScsynthBootError) {
-          return APIInitResult::ScsynthBootError;
+            return APIBootResult::ScsynthBootError;
         } else {
-          return APIInitResult::TerminalError;
+            return APIBootResult::TerminalError;
         }
     }
 
@@ -700,7 +711,7 @@ APIInitResult SonicPiAPI::Init(const fs::path& root, bool noScsynthInputs)
     {
         LOG(INFO, "Attempting to start OSC Server failed....");
         m_osc_mtx.unlock();
-        return APIInitResult::TerminalError;
+        return APIBootResult::TerminalError;
     }
 
     LOG(INFO, "API Init Started...");
@@ -715,7 +726,7 @@ APIInitResult SonicPiAPI::Init(const fs::path& root, bool noScsynthInputs)
         PingUntilServerCreated();
     });
 
-    return APIInitResult::Successful;
+    return APIBootResult::Successful;
 }
 
 bool SonicPiAPI::InitializePaths(const fs::path& root)
