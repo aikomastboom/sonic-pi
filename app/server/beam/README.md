@@ -36,7 +36,7 @@ pi_server.erl. This scheduler is able to take any OSC message and delay it for a
 specific amount of time before forwarding it on to a different host/port with
 ~1ms accuracy (more could be achieved at the cost of CPU).
 
-The next step was to implement all external non-audio comms as OSC messages.
+The next step was to implement all external non-audio communications as OSC messages.
 Clearly this is trivial for OSC messages, but for MIDI we implemented an
 OSC -> MIDI bridge (thanks to the good work of Luis Lloret) which would convert
 OSC messages directly to MIDI as quickly as possible (this is implemented in
