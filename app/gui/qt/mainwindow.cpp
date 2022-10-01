@@ -42,6 +42,7 @@
 #include <QStyle>
 #include <QTextBrowser>
 #include <QTextStream>
+#include <QThread>
 #include <QToolBar>
 #include <QToolButton>
 #include <QPushButton>
@@ -130,7 +131,7 @@ MainWindow::MainWindow(QApplication& app, QSplashScreen* splash)
     show_rec_icon_a = false;
     restoreDocPane = false;
     focusMode = false;
-    version = "4.2.0";
+    version = "4.3.0";
     latest_version = "";
     version_num = 0;
     latest_version_num = 0;
@@ -3732,6 +3733,7 @@ void MainWindow::restartApp()
     QApplication* app = dynamic_cast<QApplication*>(parent());
     statusBar()->showMessage(tr("Restarting Sonic Pi..."), 10000);
 
+    qputenv("SONIC_PI_RESTART", "1");
     // Save settings and perform some cleanup
     writeSettings();
     onExitCleanup();
