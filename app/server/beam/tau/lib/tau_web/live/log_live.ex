@@ -24,12 +24,18 @@ defmodule TauWeb.LogLive do
   def render(assigns) do
     ~H"""
     <.container max_width="full">
-      <div id="log-messages" phx-update="prepend" class="bg-black text-white flex flex-col space-y-0 ">
+      <div id="log-messages"
+           phx-update="prepend"
+           class="bg-black text-white flex flex-col space-y-0 ">
 
         <%= for {level, ts, msg, _md, hash} <- @logs do %>
-<pre class="whitespace-pre pa0s" id={hash}>
-  <code class={"#{tw_ts}"}><%=ts%></code> <code class={"#{tw_level(level)}"}><%=pad_level(level)%></code> <block class={"#{tw_msg}"}><%=pad_newlines(msg)%></block>
-</pre>
+        <pre id={hash}
+             class="whitespace-pre pa0s">
+          <code
+            class={"#{tw_ts()}"}><%=ts%></code> <code
+            class={"#{tw_level(level)}"}><%=pad_level(level)%></code> <block
+            class={"#{tw_msg()}"}><%=pad_newlines(msg)%></block>
+        </pre>
         <% end %>
 
       </div>
